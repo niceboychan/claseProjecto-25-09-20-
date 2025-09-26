@@ -1,0 +1,90 @@
+import processing.serial.*;
+
+Serial puerto;
+String ultimaTarjeta = "";
+boolean hayTarjeta = false;
+
+void setup() {
+  size(500, 300);
+  
+  // Mostrar puertos disponibles
+  println("Puertos disponibles:");
+  for (int i = 0; i < Serial.list().length; i++) {
+    println(i + ": " + Serial.list()[i]);
+  }
+  
+  // Conectar al primer puerto (cambiar [0] si es necesario)
+  if (Serial.list().length > 0) {
+    puerto = new Serial(this, Serial.list()[0], 9600);
+    puerto.bufferUntil('\n');
+    println("Conectado al puerto: " + Serial.list()[0]);
+  } else {
+    println("No hay puertos disponibles");
+  }
+}
+
+void draw() {
+  background(40, 50, 60);
+  
+  // Título
+  fill(255);
+  textAlign(CENTER);
+  textSize(28);
+  text("Lector RFID", width/2, 60);
+  
+  // Cuadro para la tarjeta
+  stroke(100, 150, 200);
+  strokeWeight(2);
+  noFill();
+  rect(width/2 - 100, 100, 200, 80);
+  
+  // Instrucción
+  fill(200);
+  textSize(16);
+  text("Acerca tu tarjeta", width/2, 95);
+  
+  // Mostrar tarjeta detectada
+  if (hayTarjeta) {
+    fill(100, 255, 100);
+    textSize(14);
+    text("TARJETA DETECTADA", width/2, 130);
+    text(ultimaTarjeta, width/2, 155);
+  } else {
+    fill(150);
+    textSize(14);
+    text("Esperando...", width/2, 140);
+  }
+  
+  // Estado de conexión
+  textAlign(LEFT);
+  textSize(12);
+  fill(150);
+  if (puerto != null) {
+    text("Estado: Conectado", 20, height - 20);
+  } else {
+    text("Estado: Sin conexión", 20, height - 20);
+  }
+}
+
+void serialEvent(Serial puerto) {
+  String datos = puerto.readStringUntil('\n');
+  
+  if (datos != null) {
+    datos = trim(datos);
+    
+    if (datos.length() > 0) {
+      ultimaTarjeta = datos;
+      hayTarjeta = true;
+      println("Tarjeta leída: " + ultimaTarjeta);
+    }
+  }
+}
+
+// Limpiar con tecla R
+void keyPressed() {
+  if (key == 'r' || key == 'R') {
+    ultimaTarjeta = "";
+    hayTarjeta = false;
+    println("Limpiado");
+  }
+}
